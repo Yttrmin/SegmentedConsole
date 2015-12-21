@@ -42,19 +42,9 @@ namespace SegmentedConsole
             STDInHandle = GetStdHandle(-10);
             STDOutHandle = GetStdHandle(-11);
             //Divider = new string('=', SysConsole.BufferWidth).ToCharArray();
-            ConsoleBuffer = new char[SysConsole.WindowWidth * SysConsole.WindowHeight];
+            ConsoleBuffer = new char[SysConsole.WindowHeight * SysConsole.WindowWidth];
             SysConsole.ReadLine();
-            Out = new OutputSegment(SysConsole.WindowWidth, SysConsole.WindowHeight);
-            var q = new CharInfo[3, 3];
-            q[0, 0] = q[0, 1] = q[0, 2] = new CharInfo('A');
-            q[1, 0] = q[1, 1] = q[1, 2] = new CharInfo('B');
-            q[2, 0] = q[2, 1] = q[2, 2] = new CharInfo('C');
-            var Rect = new Rect(0, 0, 2, 2);
-            var Result = WriteConsoleOutput(STDOutHandle, q, new Coord(3, 3), new Coord(0, 0), ref Rect);
-            if(!Result)
-            {
-                throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error());
-            }
+            Out = new OutputSegment(new Rect(1,0,4,2));
         }
         
         private static void Initialize()
@@ -74,21 +64,25 @@ namespace SegmentedConsole
             Task.Factory.StartNew((t) => UpdateConsole((CancellationToken)t), TokenSource.Token, TaskCreationOptions.LongRunning);
         }
 
+        private static void WriteToConsole(Segment Segment)
+        {
+            var Area = Segment.Area;
+            WriteConsoleOutput(STDOutHandle, Segment.Buffer, Segment.Bounds, Coord.Zero, ref Area);
+        }
+
         private static async Task UpdateConsole(CancellationToken Token)
         {
             while(!Token.IsCancellationRequested)
             {
-                await Task.Delay(1000/60);
-                //Console.Write("A");
+                await Task.Delay(1000/5);
+                //Console.Write("AAABBBCCC");
             }
         }
 
         public static void Write(string Text)
         {
             Out.Write(Text);
-            Out.MergeBuffer(ConsoleBuffer);
-            SysConsole.SetCursorPosition(0, 0);
-            SysConsole.Write(ConsoleBuffer);
+            WriteToConsole(Out);
         }
 
         public static void Poke() { }

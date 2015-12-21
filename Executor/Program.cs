@@ -16,6 +16,7 @@ namespace Executor
             while(true)
             {
                 System.Threading.Thread.Sleep(1000);
+                Console.Write("A");
             }
         }
     }

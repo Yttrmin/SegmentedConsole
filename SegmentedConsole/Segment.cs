@@ -9,33 +9,35 @@ namespace SegmentedConsole
 {
     internal class Segment
     {
-        private char[] Buffer;
-        private int Cursor;
-        private int X, Y;
+        public CharInfo[,] Buffer { get; private set; }
+        private Coord Cursor;
+        public Coord Bounds { get; private set; }
+        public Rect Area { get; private set; }
+        public int Width => Area.Right - Area.Left;
+        public int Height => Area.Bottom - Area.Top;
 
-        protected Segment(int Width, int Height)
+        protected Segment(Rect Area)
         {
-            Buffer = new char[Width * Height];
-            Cursor = 0;
-            X = Y = 0;
+            this.Area = Area;
+            // Row, Column
+            Buffer = new CharInfo[Height+1, Width+1];
+            Cursor = new Coord(0,0);
+            Bounds = new Coord(Width, Height);
         }
 
         public void Write(string Text)
         {
             var Chars = Text.ToCharArray();
-            Array.ConstrainedCopy(Chars, 0, Buffer, Cursor, Chars.Length);
-            Cursor += Chars.Length;
+            foreach(var Char in Chars)
+            {
+                Buffer[Cursor.Row, Cursor.Column] = new CharInfo(Char);
+                Cursor = Cursor.Advance(Bounds);
+            }
         }
 
         public void WriteLine(string Text)
         {
             throw new NotImplementedException();
-        }
-
-        public void MergeBuffer(char[] DestBuffer)
-        {
-            // This is not at all right for segments narrower than the console.
-            Array.ConstrainedCopy(Buffer, X * Y, DestBuffer, X * Y, Buffer.Length);
         }
 
         public void Resize()
@@ -51,8 +53,8 @@ namespace SegmentedConsole
 
     internal sealed class InputSegment : Segment
     {
-        public InputSegment(int Width, int Height)
-            : base(Width, Height)
+        public InputSegment(Rect Area)
+            : base(Area)
         {
 
         }
@@ -60,8 +62,8 @@ namespace SegmentedConsole
     
     internal sealed class OutputSegment : Segment
     {
-        public OutputSegment(int Width, int Height)
-            : base(Width, Height)
+        public OutputSegment(Rect Area)
+            : base(Area)
         {
 
         }

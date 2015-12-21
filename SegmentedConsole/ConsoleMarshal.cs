@@ -44,19 +44,50 @@ namespace SegmentedConsole
     [StructLayout(LayoutKind.Sequential)]
     internal struct Coord
     {
-        public readonly short X, Y;
+        public readonly short Column, Row;
+        public static readonly Coord Zero = new Coord(0, 0);
 
-        public Coord(short X, short Y)
+        public Coord(short Column, short Row)
         {
-            this.X = X;
-            this.Y = Y;
+            this.Column = Column;
+            this.Row = Row;
+        }
+
+        public Coord(int Column, int Row)
+            :this((short)Column, (short)Row)
+        {
+        }
+
+        public Coord Advance(Coord Bounds)
+        {
+            int NewColumn, NewRow = 0;
+            if(Column == Bounds.Column)
+            {
+                NewColumn = 0;
+                NewRow = Row + 1;
+                if(NewRow == Bounds.Row)
+                {
+                    throw new Exception("Advancing will go out of bounds.");
+                }
+            }
+            else
+            {
+                NewColumn = Column + 1;
+                NewRow = Row;
+            }
+            return new Coord((short)NewColumn, (short)NewRow);
+        }
+
+        public override string ToString()
+        {
+            return $"({Row},{Column})";
         }
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct Rect
     {
-        short Left, Top, Right, Bottom;
+        public readonly short Left, Top, Right, Bottom;
 
         public Rect(short Left, short Top, short Right, short Bottom)
         {
@@ -64,6 +95,14 @@ namespace SegmentedConsole
             this.Top = Top;
             this.Right = Right;
             this.Bottom = Bottom;
+        }
+
+        public Rect(int Left, int Top, int Right, int Bottom)
+        {
+            this.Left = (short)Left;
+            this.Top = (short)Top;
+            this.Right = (short)Right;
+            this.Bottom = (short)Bottom;
         }
     }
 }
