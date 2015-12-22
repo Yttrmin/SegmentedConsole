@@ -43,8 +43,8 @@ namespace SegmentedConsole
             STDOutHandle = GetStdHandle(-11);
             //Divider = new string('=', SysConsole.BufferWidth).ToCharArray();
             ConsoleBuffer = new char[SysConsole.WindowHeight * SysConsole.WindowWidth];
-            SysConsole.ReadLine();
-            Out = new OutputSegment(new Rect(1,0,4,2));
+            var SegmentArea = new Rect(0, 0, 2, 1);
+            Out = new OutputSegment(SegmentArea);
         }
         
         private static void Initialize()
@@ -67,7 +67,7 @@ namespace SegmentedConsole
         private static void WriteToConsole(Segment Segment)
         {
             var Area = Segment.Area;
-            WriteConsoleOutput(STDOutHandle, Segment.Buffer, Segment.Bounds, Coord.Zero, ref Area);
+            WriteConsoleOutput(STDOutHandle, Segment.Buffer, Segment.Size, Coord.Zero, ref Area);
         }
 
         private static async Task UpdateConsole(CancellationToken Token)

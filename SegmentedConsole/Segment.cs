@@ -11,18 +11,29 @@ namespace SegmentedConsole
     {
         public CharInfo[,] Buffer { get; private set; }
         private Coord Cursor;
+        /// <summary>
+        /// Size of the Buffer
+        /// </summary>
         public Coord Bounds { get; private set; }
+        /// <summary>
+        /// The inclusive area reserved on the console window for this segment.
+        /// </summary>
         public Rect Area { get; private set; }
+        public Coord Size { get; }
         public int Width => Area.Right - Area.Left;
         public int Height => Area.Bottom - Area.Top;
+        private bool PendingNewLine;
 
         protected Segment(Rect Area)
         {
             this.Area = Area;
+            var BufferWidth = Width+1;
+            var BufferHeight = Height+1;
+            Size = new Coord(BufferWidth, BufferHeight);
             // Row, Column
-            Buffer = new CharInfo[Height+1, Width+1];
+            Buffer = new CharInfo[Size.Row, Size.Column];
             Cursor = new Coord(0,0);
-            Bounds = new Coord(Width, Height);
+            Bounds = new Coord(Buffer.GetUpperBound(1), Buffer.GetUpperBound(0));
         }
 
         public void Write(string Text)
@@ -30,8 +41,21 @@ namespace SegmentedConsole
             var Chars = Text.ToCharArray();
             foreach(var Char in Chars)
             {
+                if(PendingNewLine)
+                {
+                    NewLine();
+                    Cursor = new Coord((short)0, Cursor.Row);
+                    PendingNewLine = false;
+                }
                 Buffer[Cursor.Row, Cursor.Column] = new CharInfo(Char);
-                Cursor = Cursor.Advance(Bounds);
+                if (!Cursor.CanAdvance(Bounds))
+                {
+                    PendingNewLine = true;
+                }
+                else
+                {
+                    Cursor = Cursor.Advance(Bounds);
+                }
             }
         }
 
@@ -47,7 +71,13 @@ namespace SegmentedConsole
 
         private void NewLine()
         {
-            throw new NotImplementedException();
+            Array.ConstrainedCopy(Buffer, Size.Column, Buffer, 0, Size.Column * (Size.Row - 1));
+            // Blank out the last row.
+            var row = Buffer.GetUpperBound(0);
+            for (var col = 0; col < Size.Column; col++)
+            {
+                Buffer[row, col] = CharInfo.Blank;
+            }
         }
     }
 

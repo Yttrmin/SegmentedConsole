@@ -13,10 +13,12 @@ namespace Executor
         {
             Console.Poke();
             // Keep alive
+            var Characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()";
+            var Random = new Random();
             while(true)
             {
-                System.Threading.Thread.Sleep(1000);
-                Console.Write("A");
+                System.Threading.Thread.Sleep(250);
+                Console.Write(Characters.ElementAt(Random.Next(Characters.Length)).ToString());
             }
         }
     }

@@ -32,6 +32,7 @@ namespace SegmentedConsole
     {
         public readonly char Char;
         public readonly ConsoleAttributes Attributes;
+        public static readonly CharInfo Blank = new CharInfo('©');
 
         public CharInfo(char Char)
         {
@@ -65,7 +66,7 @@ namespace SegmentedConsole
             {
                 NewColumn = 0;
                 NewRow = Row + 1;
-                if(NewRow == Bounds.Row)
+                if(NewRow > Bounds.Row)
                 {
                     throw new Exception("Advancing will go out of bounds.");
                 }
@@ -75,7 +76,53 @@ namespace SegmentedConsole
                 NewColumn = Column + 1;
                 NewRow = Row;
             }
-            return new Coord((short)NewColumn, (short)NewRow);
+            return new Coord(NewColumn, NewRow);
+        }
+
+        public bool CanAdvance(Coord Bounds)
+        {
+            //@TODO - This is terrible
+            int NewColumn, NewRow = 0;
+            if (Column == Bounds.Column)
+            {
+                NewColumn = 0;
+                NewRow = Row + 1;
+                if (NewRow > Bounds.Row)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                NewColumn = Column + 1;
+                NewRow = Row;
+            }
+            return true;
+        }
+
+        public static bool operator ==(Coord A, Coord B)
+        {
+            return A.Equals(B);
+        }
+
+        public static bool operator !=(Coord A, Coord B)
+        {
+            return !A.Equals(B);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(obj is Coord)
+            {
+                return Equals((Coord)obj);
+            }
+            return base.Equals(obj);
+        }
+
+        public bool Equals(Coord Other)
+        {
+            return this.Column == Other.Column
+                && this.Row == Other.Row;
         }
 
         public override string ToString()
@@ -103,6 +150,11 @@ namespace SegmentedConsole
             this.Top = (short)Top;
             this.Right = (short)Right;
             this.Bottom = (short)Bottom;
+        }
+
+        public override string ToString()
+        {
+            return $"UL:({Left},{Top})   LR:({Right},{Bottom})";
         }
     }
 }
