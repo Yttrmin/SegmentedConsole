@@ -9,6 +9,7 @@ namespace SegmentedConsole
 {
     internal class Segment
     {
+        //@TODO - Double buffering, only update dirty portions?
         public CharInfo[,] Buffer { get; private set; }
         private Coord Cursor;
         /// <summary>
@@ -57,6 +58,17 @@ namespace SegmentedConsole
                     Cursor = Cursor.Advance(Bounds);
                 }
             }
+            if(Chars.Length > 0)
+            {
+                WriteToConsole();
+            }
+        }
+
+        public void Clear()
+        {
+            Array.Clear(Buffer, 0, Buffer.Length);
+            Cursor = new Coord(0, 0);
+            WriteToConsole();
         }
 
         public void WriteLine(string Text)
@@ -79,6 +91,12 @@ namespace SegmentedConsole
                 Buffer[row, col] = CharInfo.Blank;
             }
         }
+
+        private void WriteToConsole()
+        {
+            var Area = this.Area;
+            Native.WriteConsoleOutput(Console.STDOutHandle, this.Buffer, this.Size, Coord.Zero, ref Area);
+        }
     }
 
     internal sealed class InputSegment : Segment
@@ -97,7 +115,7 @@ namespace SegmentedConsole
         {
             while(SysConsole.KeyAvailable)
             {
-                var Info = SysConsole.ReadKey(false); //@TODO - true
+                var Info = SysConsole.ReadKey(true);
                 if(IgnoreValue(Info))
                 {
                     continue;
@@ -109,13 +127,19 @@ namespace SegmentedConsole
                 }
                 else if(Info.Key == ConsoleKey.Backspace)
                 {
-                    Builder.Remove(Builder.Length - 1, 1);
+                    if (Builder.Length > 0)
+                    {
+                        Builder.Remove(Builder.Length - 1, 1);
+                    }
                 }
                 else
                 {
                     Builder.Append(Info.KeyChar);
                 }
             }
+            // Not particularly efficient but probably fine.
+            Clear();
+            Write(Builder.ToString());
         }
 
         private bool IgnoreValue(ConsoleKeyInfo Info)
