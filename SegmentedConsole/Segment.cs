@@ -83,10 +83,53 @@ namespace SegmentedConsole
 
     internal sealed class InputSegment : Segment
     {
+        private StringBuilder Builder;
+        public event Action<string> LineEntered;
+
         public InputSegment(Rect Area)
             : base(Area)
         {
+            SysConsole.SetCursorPosition(Area.Left, Area.Top);
+            this.Builder = new StringBuilder();
+        }
 
+        public void OnKeyAvailable()
+        {
+            while(SysConsole.KeyAvailable)
+            {
+                var Info = SysConsole.ReadKey(false); //@TODO - true
+                if(IgnoreValue(Info))
+                {
+                    continue;
+                }
+                if(Info.Key == ConsoleKey.Enter)
+                {
+                    LineEntered?.Invoke(Builder.ToString());
+                    Builder.Clear();
+                }
+                else if(Info.Key == ConsoleKey.Backspace)
+                {
+                    Builder.Remove(Builder.Length - 1, 1);
+                }
+                else
+                {
+                    Builder.Append(Info.KeyChar);
+                }
+            }
+        }
+
+        private bool IgnoreValue(ConsoleKeyInfo Info)
+        {
+            if ((Info.Modifiers & ConsoleModifiers.Alt) == ConsoleModifiers.Alt)
+                return true;
+            if ((Info.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
+                return true;
+            // Ignore if KeyChar value is \u0000.
+            if (Info.KeyChar == '\u0000') return true;
+            // Ignore tab key.
+            if (Info.Key == ConsoleKey.Tab) return true;
+
+            return false;
         }
     }
     

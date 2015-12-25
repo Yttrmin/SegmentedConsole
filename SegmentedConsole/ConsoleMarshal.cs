@@ -3,6 +3,30 @@ using System.Runtime.InteropServices;
 
 namespace SegmentedConsole
 {
+    internal static class Native
+    {
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GetConsoleWindow();
+        [DllImport("kernel32")]
+        public static extern bool AllocConsole();
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr GetStdHandle(int nStdHandle);
+        /* Writes character and color attribute data to a specified rectangular block of character cells in a console screen buffer.
+           The data to be written is taken from a correspondingly sized rectangular block at a specified location in the source buffe */
+        [DllImport("kernel32.dll", EntryPoint = "WriteConsoleOutputW", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool WriteConsoleOutput(
+           IntPtr hConsoleOutput,
+           /* This pointer is treated as the origin of a two-dimensional array of CHAR_INFO structures
+               whose size is specified by the dwBufferSize parameter.*/
+           [MarshalAs(UnmanagedType.LPArray), In] CharInfo[,] lpBuffer,
+           Coord dwBufferSize,
+           Coord dwBufferCoord,
+           ref Rect lpWriteRegion);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetCursorPos(int X, int Y);
+    }
+
     [Flags]
     internal enum ConsoleAttributes : short
     {

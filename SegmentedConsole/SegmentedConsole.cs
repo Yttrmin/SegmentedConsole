@@ -12,70 +12,58 @@ namespace SegmentedConsole
 {
     public class Console
     {
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr GetConsoleWindow();
-        [DllImport("kernel32")]
-        private static extern bool AllocConsole();
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern IntPtr GetStdHandle(int nStdHandle);
-        /* Writes character and color attribute data to a specified rectangular block of character cells in a console screen buffer.
-           The data to be written is taken from a correspondingly sized rectangular block at a specified location in the source buffe */
-        [DllImport("kernel32.dll", EntryPoint = "WriteConsoleOutputW", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern bool WriteConsoleOutput(
-           IntPtr hConsoleOutput,
-           /* This pointer is treated as the origin of a two-dimensional array of CHAR_INFO structures
-               whose size is specified by the dwBufferSize parameter.*/
-           [MarshalAs(UnmanagedType.LPArray), In] CharInfo[,] lpBuffer,
-           Coord dwBufferSize,
-           Coord dwBufferCoord,
-           ref Rect lpWriteRegion);
-
         private static readonly IntPtr STDInHandle;
         private static readonly IntPtr STDOutHandle;
-        private static readonly char[] Divider;
         private static readonly char[] ConsoleBuffer;
         private static OutputSegment Out;
+        private static InputSegment In;
+        private static Timer InputTimer;
 
         static Console()
         {
             Initialize();
-            STDInHandle = GetStdHandle(-10);
-            STDOutHandle = GetStdHandle(-11);
-            //Divider = new string('=', SysConsole.BufferWidth).ToCharArray();
+            STDInHandle = Native.GetStdHandle(-10);
+            STDOutHandle = Native.GetStdHandle(-11);
             ConsoleBuffer = new char[SysConsole.WindowHeight * SysConsole.WindowWidth];
             var SegmentArea = new Rect(0, 0, 2, 1);
             Out = new OutputSegment(SegmentArea);
+            SegmentArea = new Rect(0, 15, 10, 15);
+            In = new InputSegment(SegmentArea);
+            In.LineEntered += OnEntered;
+            InputTimer = new Timer(Tick, null, 0, 1000/60);
+        }
+
+        private static void OnEntered(string Value)
+        {
+            throw new Exception(Value);
         }
         
         private static void Initialize()
         {
             // Create console if one does not exist.
-            var ConsoleHandle = GetConsoleWindow();
+            var ConsoleHandle = Native.GetConsoleWindow();
             if (ConsoleHandle == IntPtr.Zero)
             {
-                var ConsoleAllocated = AllocConsole();
-                ConsoleHandle = GetConsoleWindow();
+                var ConsoleAllocated = Native.AllocConsole();
+                ConsoleHandle = Native.GetConsoleWindow();
                 if (!ConsoleAllocated || ConsoleHandle == IntPtr.Zero)
                 {
                     throw new Exception("No console existed and a new one could not be allocated.");
                 }
             }
-            var TokenSource = new CancellationTokenSource();
-            Task.Factory.StartNew((t) => UpdateConsole((CancellationToken)t), TokenSource.Token, TaskCreationOptions.LongRunning);
         }
 
         private static void WriteToConsole(Segment Segment)
         {
             var Area = Segment.Area;
-            WriteConsoleOutput(STDOutHandle, Segment.Buffer, Segment.Size, Coord.Zero, ref Area);
+            Native.WriteConsoleOutput(STDOutHandle, Segment.Buffer, Segment.Size, Coord.Zero, ref Area);
         }
 
-        private static async Task UpdateConsole(CancellationToken Token)
+        private static void Tick(object State)
         {
-            while(!Token.IsCancellationRequested)
+            if (SysConsole.KeyAvailable)
             {
-                await Task.Delay(1000/5);
-                //Console.Write("AAABBBCCC");
+                In.OnKeyAvailable();
             }
         }
 
