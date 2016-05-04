@@ -156,7 +156,7 @@ namespace SegmentedConsole
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct Rect
+    public struct Rect
     {
         public readonly short Left, Top, Right, Bottom;
 

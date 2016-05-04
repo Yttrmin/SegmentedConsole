@@ -7,25 +7,25 @@ using SysConsole = System.Console;
 
 namespace SegmentedConsole
 {
-    internal class Segment
+    public class Segment
     {
         //@TODO - Double buffering, only update dirty portions?
-        public CharInfo[,] Buffer { get; private set; }
+        internal CharInfo[,] Buffer { get; private set; }
         private Coord Cursor;
         /// <summary>
         /// Size of the Buffer
         /// </summary>
-        public Coord Bounds { get; private set; }
+        internal Coord Bounds { get; private set; }
         /// <summary>
         /// The inclusive area reserved on the console window for this segment.
         /// </summary>
-        public Rect Area { get; private set; }
-        public Coord Size { get; }
-        public int Width => Area.Right - Area.Left;
-        public int Height => Area.Bottom - Area.Top;
+        internal Rect Area { get; private set; }
+        internal Coord Size { get; }
+        internal int Width => Area.Right - Area.Left;
+        internal int Height => Area.Bottom - Area.Top;
         private bool PendingNewLine;
 
-        protected Segment(Rect Area)
+        internal Segment(Rect Area)
         {
             this.Area = Area;
             var BufferWidth = Width+1;
@@ -99,7 +99,7 @@ namespace SegmentedConsole
         }
     }
 
-    internal sealed class InputSegment : Segment
+    public sealed class InputSegment : Segment
     {
         private StringBuilder Builder;
         public event Action<string> LineEntered;
@@ -157,7 +157,7 @@ namespace SegmentedConsole
         }
     }
     
-    internal sealed class OutputSegment : Segment
+    public sealed class OutputSegment : Segment
     {
         public OutputSegment(Rect Area)
             : base(Area)

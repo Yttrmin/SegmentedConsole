@@ -61,6 +61,11 @@ namespace SegmentedConsole
             }
         }
 
+        public static void Create(params Segment[] Segments)
+        {
+
+        }
+
         public static void Write(string Text)
         {
             Out.Write(Text);
