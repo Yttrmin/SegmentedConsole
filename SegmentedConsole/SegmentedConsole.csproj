@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Buffer.cs" />
     <Compile Include="ConsoleMarshal.cs" />
     <Compile Include="Segment.cs" />
     <Compile Include="SegmentedConsole.cs" />

@@ -12,7 +12,7 @@ namespace SegmentedConsole
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr GetStdHandle(int nStdHandle);
         /* Writes character and color attribute data to a specified rectangular block of character cells in a console screen buffer.
-           The data to be written is taken from a correspondingly sized rectangular block at a specified location in the source buffe */
+           The data to be written is taken from a correspondingly sized rectangular block at a specified location in the source buffer. */
         [DllImport("kernel32.dll", EntryPoint = "WriteConsoleOutputW", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool WriteConsoleOutput(
            IntPtr hConsoleOutput,
@@ -67,86 +67,20 @@ namespace SegmentedConsole
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct Coord
+    public struct Coord
     {
         public readonly short Column, Row;
         public static readonly Coord Zero = new Coord(0, 0);
 
-        public Coord(short Column, short Row)
+        public Coord(short Row, short Column)
         {
             this.Column = Column;
             this.Row = Row;
         }
 
-        public Coord(int Column, int Row)
-            :this((short)Column, (short)Row)
+        public Coord(int Row, int Column)
+            :this((short)Row, (short)Column)
         {
-        }
-
-        public Coord Advance(Coord Bounds)
-        {
-            int NewColumn, NewRow = 0;
-            if(Column == Bounds.Column)
-            {
-                NewColumn = 0;
-                NewRow = Row + 1;
-                if(NewRow > Bounds.Row)
-                {
-                    throw new Exception("Advancing will go out of bounds.");
-                }
-            }
-            else
-            {
-                NewColumn = Column + 1;
-                NewRow = Row;
-            }
-            return new Coord(NewColumn, NewRow);
-        }
-
-        public bool CanAdvance(Coord Bounds)
-        {
-            //@TODO - This is terrible
-            int NewColumn, NewRow = 0;
-            if (Column == Bounds.Column)
-            {
-                NewColumn = 0;
-                NewRow = Row + 1;
-                if (NewRow > Bounds.Row)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                NewColumn = Column + 1;
-                NewRow = Row;
-            }
-            return true;
-        }
-
-        public static bool operator ==(Coord A, Coord B)
-        {
-            return A.Equals(B);
-        }
-
-        public static bool operator !=(Coord A, Coord B)
-        {
-            return !A.Equals(B);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if(obj is Coord)
-            {
-                return Equals((Coord)obj);
-            }
-            return base.Equals(obj);
-        }
-
-        public bool Equals(Coord Other)
-        {
-            return this.Column == Other.Column
-                && this.Row == Other.Row;
         }
 
         public override string ToString()

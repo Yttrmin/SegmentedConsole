@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using SysConsole = System.Console;
 
 namespace SegmentedConsole
@@ -25,12 +19,11 @@ namespace SegmentedConsole
             STDInHandle = Native.GetStdHandle(-10);
             STDOutHandle = Native.GetStdHandle(-11);
             ConsoleBuffer = new char[SysConsole.WindowHeight * SysConsole.WindowWidth];
-            var SegmentArea = new Rect(0, 0, 8, 3);
-            Out = new OutputSegment(SegmentArea);
-            SegmentArea = new Rect(0, 15, 10, 15);
-            In = new InputSegment(SegmentArea);
+            Out = new OutputSegment(new Coord(1,1), 8, 3);
+            //SegmentArea = new Rect(0, 15, 10, 15);
+            In = new InputSegment(new Coord(15,0), 10, 15);
             In.LineEntered += OnEntered;
-            InputTimer = new Timer(Tick, null, 0, 1000/60);
+            //InputTimer = new Timer(Tick, null, 0, 1000/60);
         }
 
         private static void OnEntered(string Value)

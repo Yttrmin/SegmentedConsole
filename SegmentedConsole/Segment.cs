@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using SysConsole = System.Console;
 
 namespace SegmentedConsole
@@ -10,12 +7,7 @@ namespace SegmentedConsole
     public class Segment
     {
         //@TODO - Double buffering, only update dirty portions?
-        internal CharInfo[,] Buffer { get; private set; }
-        private Coord Cursor;
-        /// <summary>
-        /// Size of the Buffer
-        /// </summary>
-        internal Coord Bounds { get; private set; }
+        internal Buffer Buffer { get; private set; }
         /// <summary>
         /// The inclusive area reserved on the console window for this segment.
         /// </summary>
@@ -23,18 +15,13 @@ namespace SegmentedConsole
         internal Coord Size { get; }
         internal int Width => Area.Right - Area.Left;
         internal int Height => Area.Bottom - Area.Top;
-        private bool PendingNewLine;
 
-        internal Segment(Rect Area)
+        internal Segment(Coord UpperLeft, int Width, int Height)
         {
-            this.Area = Area;
-            var BufferWidth = Width+1;
-            var BufferHeight = Height+1;
-            Size = new Coord(BufferWidth, BufferHeight);
+            Area = new Rect(UpperLeft.Column, UpperLeft.Row, UpperLeft.Column + Width, UpperLeft.Row + Height);
+            Size = new Coord(Height, Width);
             // Row, Column
-            Buffer = new CharInfo[Size.Row, Size.Column];
-            Cursor = new Coord(0,0);
-            Bounds = new Coord(Buffer.GetUpperBound(1), Buffer.GetUpperBound(0));
+            Buffer = new Buffer(Width, Height);
         }
 
         public void Write(string Text)
@@ -42,21 +29,7 @@ namespace SegmentedConsole
             var Chars = Text.ToCharArray();
             foreach(var Char in Chars)
             {
-                if(PendingNewLine)
-                {
-                    NewLine();
-                    Cursor = new Coord((short)0, Cursor.Row);
-                    PendingNewLine = false;
-                }
-                Buffer[Cursor.Row, Cursor.Column] = new CharInfo(Char);
-                if (!Cursor.CanAdvance(Bounds))
-                {
-                    PendingNewLine = true;
-                }
-                else
-                {
-                    Cursor = Cursor.Advance(Bounds);
-                }
+                Buffer.Append(Char);
             }
             if(Chars.Length > 0)
             {
@@ -66,8 +39,7 @@ namespace SegmentedConsole
 
         public void Clear()
         {
-            Array.Clear(Buffer, 0, Buffer.Length);
-            Cursor = new Coord(0, 0);
+            Buffer.Clear();
             WriteToConsole();
         }
 
@@ -81,21 +53,10 @@ namespace SegmentedConsole
             throw new NotImplementedException();
         }
 
-        private void NewLine()
-        {
-            Array.ConstrainedCopy(Buffer, Size.Column, Buffer, 0, Size.Column * (Size.Row - 1));
-            // Blank out the last row.
-            var row = Buffer.GetUpperBound(0);
-            for (var col = 0; col < Size.Column; col++)
-            {
-                Buffer[row, col] = CharInfo.Blank;
-            }
-        }
-
         private void WriteToConsole()
         {
             var Area = this.Area;
-            Native.WriteConsoleOutput(Console.STDOutHandle, this.Buffer, this.Size, Coord.Zero, ref Area);
+            Native.WriteConsoleOutput(Console.STDOutHandle, this.Buffer.InternalBuffer, this.Size, Coord.Zero, ref Area);
         }
     }
 
@@ -104,8 +65,8 @@ namespace SegmentedConsole
         private StringBuilder Builder;
         public event Action<string> LineEntered;
 
-        public InputSegment(Rect Area)
-            : base(Area)
+        public InputSegment(Coord UpperLeft, int Width, int Height)
+            : base(UpperLeft, Width, Height)
         {
             SysConsole.SetCursorPosition(Area.Left, Area.Top);
             this.Builder = new StringBuilder();
@@ -159,8 +120,8 @@ namespace SegmentedConsole
     
     public sealed class OutputSegment : Segment
     {
-        public OutputSegment(Rect Area)
-            : base(Area)
+        public OutputSegment(Coord UpperLeft, int Width, int Height)
+            : base(UpperLeft, Width, Height)
         {
 
         }
