@@ -39,7 +39,8 @@ namespace SegmentedConsole
 
         public void Clear()
         {
-            throw new NotImplementedException();
+            Array.Clear(Data, 0, Data.Length);
+            CurrentCoord = new Coord(0, 0);
         }
 
         private void Newline()

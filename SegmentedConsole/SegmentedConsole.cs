@@ -20,10 +20,9 @@ namespace SegmentedConsole
             STDOutHandle = Native.GetStdHandle(-11);
             ConsoleBuffer = new char[SysConsole.WindowHeight * SysConsole.WindowWidth];
             Out = new OutputSegment(new Coord(1,1), 8, 3);
-            //SegmentArea = new Rect(0, 15, 10, 15);
-            In = new InputSegment(new Coord(15,0), 10, 15);
+            In = new InputSegment(new Coord(15,0), 5, 2);
             In.LineEntered += OnEntered;
-            //InputTimer = new Timer(Tick, null, 0, 1000/60);
+            InputTimer = new Timer(Tick, null, 0, 1000/60);
         }
 
         private static void OnEntered(string Value)
