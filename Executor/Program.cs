@@ -11,13 +11,29 @@ namespace Executor
             Console.Poke();
             var Characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()";
             var Random = new Random();
-            Console.Write("HELLO WORLD!");
+            Console.GetSegment("R").Write("HELLO WORLD!");
+            Console.GetInputSegment().LineEntered += OnEntered;
             // Keep alive
             while (true)
             {
                 System.Threading.Thread.Sleep(250);
-                Console.Write(Characters.ElementAt(Random.Next(Characters.Length)).ToString());
+                Console.GetSegment("L").Write(Characters.ElementAt(Random.Next(Characters.Length)).ToString());
             }
+        }
+
+        private static void OnEntered(string RawValue)
+        {
+            var Value = RawValue;
+            var Target = RawValue.Substring(0,1);
+            if (Target != "R" && Target != "L")
+            {
+                Target = "L";
+            }
+            else
+            {
+                Value = RawValue.Substring(1);
+            }
+            Console.GetSegment(Target).Write(Value);
         }
     }
 }

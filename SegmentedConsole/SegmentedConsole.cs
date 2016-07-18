@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
 using SysConsole = System.Console;
 
@@ -9,7 +11,7 @@ namespace SegmentedConsole
         private static readonly IntPtr STDInHandle;
         internal static readonly IntPtr STDOutHandle;
         private static readonly char[] ConsoleBuffer;
-        private static OutputSegment Out;
+        private static IReadOnlyDictionary<string, OutputSegment> Outputs;
         private static InputSegment In;
         private static Timer InputTimer;
 
@@ -19,15 +21,12 @@ namespace SegmentedConsole
             STDInHandle = Native.GetStdHandle(-10);
             STDOutHandle = Native.GetStdHandle(-11);
             ConsoleBuffer = new char[SysConsole.WindowHeight * SysConsole.WindowWidth];
-            Out = new OutputSegment(new Coord(1,1), 8, 3);
+            var Outputs = new Dictionary<string, OutputSegment>();
+            Outputs["L"] = new OutputSegment(new Coord(1,1), 8, 3);
+            Outputs["R"] = new OutputSegment(new Coord(1, 15), 8, 3);
+            Console.Outputs = new ReadOnlyDictionary<string, OutputSegment>(Outputs);
             In = new InputSegment(new Coord(15,0), 5, 2);
-            In.LineEntered += OnEntered;
             InputTimer = new Timer(Tick, null, 0, 1000/60);
-        }
-
-        private static void OnEntered(string Value)
-        {
-            Out.Write(Value);
         }
         
         private static void Initialize()
@@ -58,9 +57,14 @@ namespace SegmentedConsole
 
         }
 
-        public static void Write(string Text)
+        public static OutputSegment GetSegment(string Name)
         {
-            Out.Write(Text);
+            return Outputs[Name];
+        }
+
+        public static InputSegment GetInputSegment()
+        {
+            return In;
         }
 
         public static void Poke() { }
