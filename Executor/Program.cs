@@ -8,7 +8,6 @@ namespace Executor
     {
         static void Main(string[] args)
         {
-            Console.Poke();
             var Characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()";
             var Random = new Random();
             Console.GetSegment("R").Write("HELLO WORLD!");

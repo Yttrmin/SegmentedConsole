@@ -25,7 +25,7 @@ namespace SegmentedConsole
 
         public void Append(char Character)
         {
-            if(NeedNewLine)
+            if (NeedNewLine)
             {
                 Newline();
                 Append(Character);
@@ -40,7 +40,16 @@ namespace SegmentedConsole
         public void Clear()
         {
             Array.Clear(Data, 0, Data.Length);
-            CurrentCoord = new Coord(0, 0);
+            CurrentCoord = Coord.Zero;
+        }
+
+        /// <summary>
+        /// Sets cursor to beginning of the buffer.
+        /// This prevents flicker when overwriting, which could happen if Clear() was used.
+        /// </summary>
+        public void ResetCursor()
+        {
+            CurrentCoord = Coord.Zero;
         }
 
         private void Newline()

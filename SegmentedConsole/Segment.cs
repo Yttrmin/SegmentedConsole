@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Text;
 using SysConsole = System.Console;
+using System.Collections.Immutable;
+using System.Threading;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace SegmentedConsole
 {
@@ -106,9 +110,13 @@ namespace SegmentedConsole
         private bool IgnoreValue(ConsoleKeyInfo Info)
         {
             if ((Info.Modifiers & ConsoleModifiers.Alt) == ConsoleModifiers.Alt)
+            {
                 return true;
+            }
             if ((Info.Modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control)
+            {
                 return true;
+            }
             // Ignore if KeyChar value is \u0000.
             if (Info.KeyChar == '\u0000') return true;
             // Ignore tab key.
@@ -118,12 +126,54 @@ namespace SegmentedConsole
         }
     }
     
-    public sealed class OutputSegment : Segment
+    public class OutputSegment : Segment
     {
         public OutputSegment(Coord UpperLeft, int Width, int Height)
             : base(UpperLeft, Width, Height)
         {
 
+        }
+    }
+
+    public sealed class DataBoundSegment : OutputSegment
+    {
+        private readonly Timer PollingTimer;
+        private readonly string Template;
+        private ImmutableArray<Func<object>> BoundData;
+        private static readonly MethodInfo FormatMethod;
+
+        static DataBoundSegment()
+        {
+            FormatMethod = typeof(String).GetMethod("Format",
+                new[] { typeof(string), typeof(object[]) });
+        }
+
+        public DataBoundSegment(Coord UpperLeft, int Width, int Height, 
+            int PollingIntervalMilliseconds, string Template, params Func<object>[] BoundData)
+            : base(UpperLeft, Width, Height)
+        {
+            this.Template = Template;
+            this.BoundData = BoundData.ToImmutableArray();
+            this.PollingTimer = new Timer(Poll, null, 0, PollingIntervalMilliseconds);
+        }
+
+        private void Poll(object State)
+        {
+            // Could pull these into the class, would need them in the lock then.
+            var Parameters = new List<object>();
+            Parameters.Add(Template);
+            var StringParameters = new List<string>();
+            foreach(var DataFunction in BoundData)
+            {
+                StringParameters.Add(DataFunction().ToString());
+            }
+            Parameters.Add(StringParameters.ToArray());
+            var FinalString = (string)FormatMethod.Invoke(null, Parameters.ToArray());
+            lock (Buffer)
+            {
+                Buffer.ResetCursor();
+                this.Write(FinalString);
+            }
         }
     }
 }
