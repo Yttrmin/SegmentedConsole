@@ -4,27 +4,35 @@ namespace SegmentedConsole
 {
     class Buffer
     {
+        private readonly bool Scrollable;
         private CharInfo[,] Data;
         private Coord CurrentCoord;
         private bool NeedNewLine => CurrentCoord.Column == Data.GetLength(1);
         private bool NeedScroll => CurrentCoord.Row == Data.GetLength(0);
         private int Width => Data.GetLength(1);
         private int Height => Data.GetLength(0);
+        private bool EndOfBuffer => !Scrollable && NeedScroll;
 
         public CharInfo this[Coord Coord] => Data[Coord.Row, Coord.Column];
         public CharInfo[,] InternalBuffer => (CharInfo[,])Data.Clone();
 
-        public Buffer(int Width, int Height)
+        public Buffer(int Width, int Height, bool Scrollable)
         {
             if(Width <= 0 || Height <= 0)
             {
                 throw new Exception("Dimensions must be positive.");
             }
             Data = new CharInfo[Height, Width];
+            this.Scrollable = Scrollable;
         }
 
         public void Append(char Character)
         {
+            // Only occurs on non-scrollable buffers
+            if(EndOfBuffer)
+            {
+                return;
+            }
             if (NeedNewLine)
             {
                 Newline();
@@ -55,7 +63,7 @@ namespace SegmentedConsole
         private void Newline()
         {
             CurrentCoord = new Coord(CurrentCoord.Row + 1, 0);
-            if(NeedScroll)
+            if(Scrollable && NeedScroll)
             {
                 Scroll();
             }

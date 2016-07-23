@@ -28,7 +28,7 @@ namespace SegmentedConsole
             var Outputs = new Dictionary<string, OutputSegment>();
             Outputs["L"] = new OutputSegment(new Coord(1,1), 8, 3);
             Outputs["R"] = new OutputSegment(new Coord(1, 15), 8, 3);
-            Outputs["DB"] = new DataBoundSegment(new SegmentedConsole.Coord(1, 25), 40, 1, 10,
+            Outputs["DB"] = new DataBoundSegment(new Coord(1, 25), 12, 1, 10,
                 "A number: {0}  ;  Number/3: {1}", () => Ticks.ToString(), () => Ticks/3);
             Console.Outputs = Outputs.ToImmutableDictionary();
             In = new InputSegment(new Coord(15,0), 5, 2);

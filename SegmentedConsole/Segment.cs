@@ -3,8 +3,7 @@ using System.Text;
 using SysConsole = System.Console;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 
 namespace SegmentedConsole
 {
@@ -20,12 +19,12 @@ namespace SegmentedConsole
         internal int Width => Area.Right - Area.Left;
         internal int Height => Area.Bottom - Area.Top;
 
-        internal Segment(Coord UpperLeft, int Width, int Height)
+        internal Segment(Coord UpperLeft, int Width, int Height, bool Scrollable)
         {
             Area = new Rect(UpperLeft.Column, UpperLeft.Row, UpperLeft.Column + Width, UpperLeft.Row + Height);
             Size = new Coord(Height, Width);
             // Row, Column
-            Buffer = new Buffer(Width, Height);
+            Buffer = new Buffer(Width, Height, Scrollable);
         }
 
         public void Write(string Text)
@@ -70,7 +69,7 @@ namespace SegmentedConsole
         public event Action<string> LineEntered;
 
         public InputSegment(Coord UpperLeft, int Width, int Height)
-            : base(UpperLeft, Width, Height)
+            : base(UpperLeft, Width, Height, true)
         {
             SysConsole.SetCursorPosition(Area.Left, Area.Top);
             this.Builder = new StringBuilder();
@@ -129,7 +128,13 @@ namespace SegmentedConsole
     public class OutputSegment : Segment
     {
         public OutputSegment(Coord UpperLeft, int Width, int Height)
-            : base(UpperLeft, Width, Height)
+            : this(UpperLeft, Width, Height, true)
+        {
+
+        }
+
+        protected OutputSegment(Coord UpperLeft, int Width, int Height, bool Scrollable)
+            : base(UpperLeft, Width, Height, Scrollable)
         {
 
         }
@@ -140,17 +145,10 @@ namespace SegmentedConsole
         private readonly Timer PollingTimer;
         private readonly string Template;
         private ImmutableArray<Func<object>> BoundData;
-        private static readonly MethodInfo FormatMethod;
-
-        static DataBoundSegment()
-        {
-            FormatMethod = typeof(String).GetMethod("Format",
-                new[] { typeof(string), typeof(object[]) });
-        }
 
         public DataBoundSegment(Coord UpperLeft, int Width, int Height, 
             int PollingIntervalMilliseconds, string Template, params Func<object>[] BoundData)
-            : base(UpperLeft, Width, Height)
+            : base(UpperLeft, Width, Height, false)
         {
             this.Template = Template;
             this.BoundData = BoundData.ToImmutableArray();
@@ -159,16 +157,7 @@ namespace SegmentedConsole
 
         private void Poll(object State)
         {
-            // Could pull these into the class, would need them in the lock then.
-            var Parameters = new List<object>();
-            Parameters.Add(Template);
-            var StringParameters = new List<string>();
-            foreach(var DataFunction in BoundData)
-            {
-                StringParameters.Add(DataFunction().ToString());
-            }
-            Parameters.Add(StringParameters.ToArray());
-            var FinalString = (string)FormatMethod.Invoke(null, Parameters.ToArray());
+            var FinalString = String.Format(Template, BoundData.Select((func) => func()).ToArray());
             lock (Buffer)
             {
                 Buffer.ResetCursor();
