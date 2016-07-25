@@ -67,7 +67,7 @@ namespace SegmentedConsole
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct Coord
+    internal struct Coord
     {
         public readonly short Column, Row;
         public static readonly Coord Zero = new Coord(0, 0);
@@ -90,7 +90,7 @@ namespace SegmentedConsole
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct Rect
+    internal struct Rect
     {
         public readonly short Left, Top, Right, Bottom;
 

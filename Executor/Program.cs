@@ -10,13 +10,17 @@ namespace Executor
         {
             var Characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()";
             var Random = new Random();
-            Console.GetSegment("R").Write("HELLO WORLD!");
-            Console.GetInputSegment().LineEntered += OnEntered;
+            var Layout = new SegmentedConsole.LayoutBuilder()
+                .AddOutputSegment("L", 1, 1, 8, 3)
+                .AddOutputSegment("R", 15, 1, 8, 3)
+                .AddInputSegment("IN", 0, 15, 5, 2);
+            Console.ApplyLayout(Layout);
+            Console.GetOutputSegment("R").Write("HELLO WORLD!");
             // Keep alive
             while (true)
             {
                 System.Threading.Thread.Sleep(250);
-                Console.GetSegment("L").Write(Characters.ElementAt(Random.Next(Characters.Length)).ToString());
+                Console.GetOutputSegment("L").Write(Characters.ElementAt(Random.Next(Characters.Length)).ToString());
             }
         }
 
@@ -32,7 +36,7 @@ namespace Executor
             {
                 Value = RawValue.Substring(1);
             }
-            Console.GetSegment(Target).Write(Value);
+            Console.GetOutputSegment(Target).Write(Value);
         }
     }
 }

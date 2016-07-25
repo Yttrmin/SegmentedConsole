@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading;
 using System.Collections.Immutable;
 using SysConsole = System.Console;
-using static System.Math;
+using System.Linq;
 
 namespace SegmentedConsole
 {
@@ -13,11 +11,10 @@ namespace SegmentedConsole
         private static readonly IntPtr STDInHandle;
         internal static readonly IntPtr STDOutHandle;
         private static readonly char[] ConsoleBuffer;
-        private static IImmutableDictionary<string, OutputSegment> Outputs;
-        private static InputSegment In;
+        private static IImmutableDictionary<string, ISegment> Segments;
+        private static InputSegment Input;
         private static Timer InputTimer;
-        //@DELETEME
-        private static int Ticks;
+        internal const string InternalPrefix = "$__";
 
         static Console()
         {
@@ -25,13 +22,6 @@ namespace SegmentedConsole
             STDInHandle = Native.GetStdHandle(-10);
             STDOutHandle = Native.GetStdHandle(-11);
             ConsoleBuffer = new char[SysConsole.WindowHeight * SysConsole.WindowWidth];
-            var Outputs = new Dictionary<string, OutputSegment>();
-            Outputs["L"] = new OutputSegment(new Coord(1,1), 8, 3);
-            Outputs["R"] = new OutputSegment(new Coord(1, 15), 8, 3);
-            Outputs["DB"] = new DataBoundSegment(new Coord(1, 25), 12, 1, 10,
-                "A number: {0}  ;  Number/3: {1}", () => Ticks.ToString(), () => Ticks/3);
-            Console.Outputs = Outputs.ToImmutableDictionary();
-            In = new InputSegment(new Coord(15,0), 5, 2);
             InputTimer = new Timer(Tick, null, 0, 1000/60);
         }
         
@@ -52,26 +42,25 @@ namespace SegmentedConsole
 
         private static void Tick(object State)
         {
-            Ticks++;
             if (SysConsole.KeyAvailable)
             {
-                In.OnKeyAvailable();
+                Input?.OnKeyAvailable();
             }
         }
 
-        public static void Create(params Segment[] Segments)
+        public static ISegment GetOutputSegment(string Name)
         {
-            throw new NotImplementedException();
+            if(Name.StartsWith(InternalPrefix))
+            {
+                return null;
+            }
+            return Segments[Name];
         }
 
-        public static OutputSegment GetSegment(string Name)
+        public static void ApplyLayout(LayoutBuilder Layout)
         {
-            return Outputs[Name];
-        }
-
-        public static InputSegment GetInputSegment()
-        {
-            return In;
+            Segments = Layout.Segments.ToImmutableDictionary((pair) => pair.Key, (pair) => (ISegment)pair.Value);
+            Input = (InputSegment)Segments.Where((pair) => pair.Value is InputSegment).SingleOrDefault().Value;
         }
     }
 }

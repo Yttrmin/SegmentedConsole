@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace SegmentedConsole
 {
-    public class Segment
+    internal class Segment : ISegment
     {
         //@TODO - Double buffering, only update dirty portions?
         internal Buffer Buffer { get; private set; }
@@ -56,6 +56,24 @@ namespace SegmentedConsole
             throw new NotImplementedException();
         }
 
+        internal static bool Intersect(Segment A, Segment B)
+        {
+            return A.ContainedBy(B) || B.ContainedBy(A);
+        }
+
+        private bool ContainedBy(Segment Other)
+        {
+            // Don't test for >=/<= or you'll get false positives.
+            // e.g.  X Segment: UL=(0,0), Width=10, Height=1
+            //       Y Segment: UL=(1,1), Width=10, Height=1
+            // These would intersect since X's bottom would touch Y's top. Yet they
+            // don't actually touch buffer-wise.
+            return ((this.Area.Left > Other.Area.Left && this.Area.Left < Other.Area.Right)
+                || (this.Area.Right > Other.Area.Left && this.Area.Right < Other.Area.Right))
+                && ((this.Area.Top > Other.Area.Top && this.Area.Top < Other.Area.Bottom)
+                || (this.Area.Bottom > Other.Area.Top && this.Area.Bottom < Other.Area.Bottom));
+        }
+
         private void WriteToConsole()
         {
             var Area = this.Area;
@@ -63,7 +81,7 @@ namespace SegmentedConsole
         }
     }
 
-    public sealed class InputSegment : Segment
+    internal sealed class InputSegment : Segment
     {
         private StringBuilder Builder;
         public event Action<string> LineEntered;
@@ -71,7 +89,8 @@ namespace SegmentedConsole
         public InputSegment(Coord UpperLeft, int Width, int Height)
             : base(UpperLeft, Width, Height, true)
         {
-            SysConsole.SetCursorPosition(Area.Left, Area.Top);
+            //@TODO - Constructed in layout, can't mess with cursor position until it's set.
+            //SysConsole.SetCursorPosition(Area.Left, Area.Top);
             this.Builder = new StringBuilder();
         }
 
@@ -124,8 +143,8 @@ namespace SegmentedConsole
             return false;
         }
     }
-    
-    public class OutputSegment : Segment
+
+    internal class OutputSegment : Segment
     {
         public OutputSegment(Coord UpperLeft, int Width, int Height)
             : this(UpperLeft, Width, Height, true)
@@ -140,7 +159,7 @@ namespace SegmentedConsole
         }
     }
 
-    public sealed class DataBoundSegment : OutputSegment
+    internal sealed class DataBoundSegment : OutputSegment
     {
         private readonly Timer PollingTimer;
         private readonly string Template;

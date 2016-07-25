@@ -50,6 +50,8 @@
   <ItemGroup>
     <Compile Include="Buffer.cs" />
     <Compile Include="ConsoleMarshal.cs" />
+    <Compile Include="ISegment.cs" />
+    <Compile Include="LayoutBuilder.cs" />
     <Compile Include="Segment.cs" />
     <Compile Include="SegmentedConsole.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
