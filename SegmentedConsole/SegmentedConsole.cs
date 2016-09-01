@@ -11,6 +11,7 @@ namespace SegmentedConsole
         private static readonly IntPtr STDInHandle;
         internal static readonly IntPtr STDOutHandle;
         private static readonly char[] ConsoleBuffer;
+        //@TODO - Track by layout, not segment, since multiple layouts may reuse segment names.
         private static IImmutableDictionary<string, ISegment> Segments;
         private static InputSegment Input;
         private static Timer InputTimer;
@@ -48,6 +49,7 @@ namespace SegmentedConsole
             }
         }
 
+        // Only search the active layout?
         public static ISegment GetOutputSegment(string Name)
         {
             if(Name.StartsWith(InternalPrefix))
@@ -57,6 +59,7 @@ namespace SegmentedConsole
             return Segments[Name];
         }
 
+        //@TODO - Support swapping between layouts and (optionally?) allowing writing to inactive layout segments.
         public static void ApplyLayout(LayoutBuilder Layout)
         {
             Segments = Layout.Segments.ToImmutableDictionary((pair) => pair.Key, (pair) => (ISegment)pair.Value);

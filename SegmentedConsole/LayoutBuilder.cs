@@ -6,6 +6,8 @@ namespace SegmentedConsole
 {
     public sealed class LayoutBuilder
     {
+        private const string ReservedPrefix = "$$";
+        private const string LineIdentifier = ReservedPrefix  + "_LINE_";
         internal ImmutableDictionary<string, Segment> Segments { get; private set; }
 
         public LayoutBuilder()
@@ -18,9 +20,13 @@ namespace SegmentedConsole
             this.Segments = OldSegmnents.Add(Name, NewSegment);
         }
 
-        private void CheckForDuplicateName(string Name)
+        private void CheckName(string Name)
         {
-            if (Segments.ContainsKey(Name))
+            if(Name.StartsWith(ReservedPrefix))
+            {
+                throw new ArgumentException($"Name '{Name}' is not allowed. Names can not begin with '{ReservedPrefix}'");
+            }
+            if(Segments.ContainsKey(Name))
             {
                 throw new ArgumentException($"There is already a Segment called '{Name}' in the layout.");
             }
@@ -37,9 +43,15 @@ namespace SegmentedConsole
             }
         }
 
+        private string GenerateNewLineName()
+        {
+            var LineCount = Segments.Keys.Where(s => s.StartsWith(LineIdentifier)).Count();
+            return $"{LineIdentifier}{LineCount}";
+        }
+
         public LayoutBuilder AddOutputSegment(string Name, int X, int Y, int Width, int Height)
         {
-            CheckForDuplicateName(Name);
+            CheckName(Name);
             var NewSegment = new OutputSegment(new Coord(Y, X), Width, Height);
             CheckForSegmentIntersection(Name, NewSegment);
             return new LayoutBuilder(this.Segments, Name, NewSegment);
@@ -59,18 +71,22 @@ namespace SegmentedConsole
             {
                 throw new ArgumentException($"Layouts may only have a maximum of 1 InputSegment. There is already an InputSegment named '{ExistingInputSegment}'");
             }
-            CheckForDuplicateName(Name);
+            CheckName(Name);
             var NewSegment = new InputSegment(new Coord(Y, X), Width, Height);
             CheckForSegmentIntersection(Name, NewSegment);
             return new LayoutBuilder(this.Segments, Name, NewSegment);
         }
 
-        public LayoutBuilder AddVerticalLine(int X, int Y, int Height=int.MaxValue)
+        public LayoutBuilder AddVerticalLine(int X, int Y, int Height, char Line = '|')
         {
-            throw new NotImplementedException();
+            var NewSegment = new OutputSegment(new Coord(Y, X), 1, Height);
+            var Name = GenerateNewLineName();
+            CheckForSegmentIntersection(Name, NewSegment);
+            NewSegment.Write(new string(Line, Height));
+            return new LayoutBuilder(this.Segments, Name, NewSegment);
         }
 
-        public LayoutBuilder AddHorizontalLine(int X, int Y, int Width=int.MaxValue)
+        public LayoutBuilder AddHorizontalLine(int X, int Y, int Width, char Line = '-')
         {
             throw new NotImplementedException();
         }

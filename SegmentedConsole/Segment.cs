@@ -61,6 +61,7 @@ namespace SegmentedConsole
             return A.ContainedBy(B) || B.ContainedBy(A);
         }
 
+        //@TODO - Rewrite
         private bool ContainedBy(Segment Other)
         {
             // Don't test for >=/<= or you'll get false positives.
@@ -74,6 +75,7 @@ namespace SegmentedConsole
                 || (this.Area.Bottom > Other.Area.Top && this.Area.Bottom < Other.Area.Bottom));
         }
 
+        //@TODO - Need a way to keep inactive layouts from writing to the console.
         private void WriteToConsole()
         {
             var Area = this.Area;
