@@ -88,7 +88,11 @@ namespace SegmentedConsole
 
         public LayoutBuilder AddHorizontalLine(int X, int Y, int Width, char Line = '-')
         {
-            throw new NotImplementedException();
+            var NewSegment = new OutputSegment(new Coord(Y, X), Width, 1);
+            var Name = GenerateNewLineName();
+            CheckForSegmentIntersection(Name, NewSegment);
+            NewSegment.Write(new string(Line, Width));
+            return new LayoutBuilder(this.Segments, Name, NewSegment);
         }
 
         public LayoutBuilder AddBorder()
