@@ -16,7 +16,7 @@ namespace Executor
                 .AddInputSegment("IN", 0, 15, 5, 2)
                 .AddVerticalLine(10, 0, 4)
                 .AddVerticalLine(11, 1, 2)
-                .AddHorizontalLine(1, 6, 5);
+                .AddHorizontalLine(1, 4, 15);
             Console.ApplyLayout(Layout);
             Console.GetOutputSegment("R").Write("HELLO WORLD!");
             // Keep alive

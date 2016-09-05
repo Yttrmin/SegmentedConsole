@@ -56,23 +56,10 @@ namespace SegmentedConsole
             throw new NotImplementedException();
         }
 
-        internal static bool Intersect(Segment A, Segment B)
+        internal bool Intersects(Segment Other)
         {
-            return A.ContainedBy(B) || B.ContainedBy(A);
-        }
-
-        //@TODO - Rewrite
-        private bool ContainedBy(Segment Other)
-        {
-            // Don't test for >=/<= or you'll get false positives.
-            // e.g.  X Segment: UL=(0,0), Width=10, Height=1
-            //       Y Segment: UL=(1,1), Width=10, Height=1
-            // These would intersect since X's bottom would touch Y's top. Yet they
-            // don't actually touch buffer-wise.
-            return ((this.Area.Left > Other.Area.Left && this.Area.Left < Other.Area.Right)
-                || (this.Area.Right > Other.Area.Left && this.Area.Right < Other.Area.Right))
-                && ((this.Area.Top > Other.Area.Top && this.Area.Top < Other.Area.Bottom)
-                || (this.Area.Bottom > Other.Area.Top && this.Area.Bottom < Other.Area.Bottom));
+            return this.Area.Left < Other.Area.Right && this.Area.Right > Other.Area.Left
+                && this.Area.Top < Other.Area.Bottom && this.Area.Bottom > Other.Area.Top;
         }
 
         //@TODO - Need a way to keep inactive layouts from writing to the console.

@@ -36,7 +36,7 @@ namespace SegmentedConsole
         {
             foreach(var ExistingSegment in Segments)
             {
-                if(Segment.Intersect(ExistingSegment.Value, ToCheck))
+                if(ExistingSegment.Value.Intersects(ToCheck))
                 {
                     throw new ArgumentException($"Can not add Segment '{Name}', it intersects with existing Segment '{ExistingSegment.Key}'");
                 }
