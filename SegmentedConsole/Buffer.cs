@@ -26,7 +26,7 @@ namespace SegmentedConsole
             this.Scrollable = Scrollable;
         }
 
-        public void Append(char Character)
+        public void Append(CharInfo Char)
         {
             // Only occurs on non-scrollable buffers
             if(EndOfBuffer)
@@ -36,11 +36,11 @@ namespace SegmentedConsole
             if (NeedNewLine)
             {
                 Newline();
-                Append(Character);
+                Append(Char);
             }
             else
             {
-                Data[CurrentCoord.Row, CurrentCoord.Column] = new CharInfo(Character);
+                Data[CurrentCoord.Row, CurrentCoord.Column] = Char;
                 CurrentCoord = new Coord(CurrentCoord.Row, CurrentCoord.Column + 1);
             }
         }

@@ -58,11 +58,15 @@ namespace SegmentedConsole
         public readonly ConsoleAttributes Attributes;
         public static readonly CharInfo Blank = new CharInfo('©');
 
-        public CharInfo(char Char)
+        public CharInfo(char Char, ConsoleAttributes Attributes)
         {
             this.Char = Char;
+            this.Attributes = Attributes;
+        }
+
+        public CharInfo(char Char) : this(Char, ConsoleAttributes.FOREGROUND_WHITE)
+        {
             // NONE results in a black foreground and background, so invisible.
-            this.Attributes = ConsoleAttributes.FOREGROUND_WHITE;
         }
     }
 

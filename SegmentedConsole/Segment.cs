@@ -4,11 +4,13 @@ using SysConsole = System.Console;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace SegmentedConsole
 {
     internal class Segment : ISegment
     {
+        private static readonly ImmutableDictionary<ConsoleColor, ConsoleAttributes> ConsoleColorMap;
         //@TODO - Double buffering, only update dirty portions?
         internal Buffer Buffer { get; private set; }
         /// <summary>
@@ -19,6 +21,29 @@ namespace SegmentedConsole
         internal int Width => Area.Right - Area.Left;
         internal int Height => Area.Bottom - Area.Top;
 
+        static Segment()
+        {
+            ConsoleColorMap = new Dictionary<ConsoleColor, ConsoleAttributes>
+            {
+                { ConsoleColor.Black, ConsoleAttributes.NONE },
+                { ConsoleColor.DarkRed, ConsoleAttributes.FOREGROUND_RED },
+                { ConsoleColor.Red, ConsoleAttributes.FOREGROUND_RED | ConsoleAttributes.FOREGROUND_INTENSITY },
+                { ConsoleColor.White, ConsoleAttributes.FOREGROUND_WHITE }
+            }.ToImmutableDictionary();
+        }
+
+        private static ConsoleAttributes ConvertColor(ConsoleColor Color, bool ForegroundColor)
+        {
+            if(ForegroundColor)
+            {
+                return ConsoleColorMap[Color];
+            }
+            else
+            {
+                return (ConsoleAttributes)((short)ConsoleColorMap[Color] << 4);
+            }
+        }
+
         internal Segment(Coord UpperLeft, int Width, int Height, bool Scrollable)
         {
             Area = new Rect(UpperLeft.Column, UpperLeft.Row, UpperLeft.Column + Width, UpperLeft.Row + Height);
@@ -27,12 +52,13 @@ namespace SegmentedConsole
             Buffer = new Buffer(Width, Height, Scrollable);
         }
 
-        public void Write(string Text)
+        public void Write(string Text, ConsoleColor ForegroundColor = ConsoleColor.White)
         {
             var Chars = Text.ToCharArray();
             foreach(var Char in Chars)
             {
-                Buffer.Append(Char);
+                var ColorAttributes = ConvertColor(ForegroundColor, true);
+                Buffer.Append(new CharInfo(Char, ColorAttributes));
             }
             if(Chars.Length > 0)
             {
