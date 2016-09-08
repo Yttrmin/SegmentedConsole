@@ -25,10 +25,22 @@ namespace SegmentedConsole
         {
             ConsoleColorMap = new Dictionary<ConsoleColor, ConsoleAttributes>
             {
-                { ConsoleColor.Black, ConsoleAttributes.NONE },
-                { ConsoleColor.DarkRed, ConsoleAttributes.FOREGROUND_RED },
-                { ConsoleColor.Red, ConsoleAttributes.FOREGROUND_RED | ConsoleAttributes.FOREGROUND_INTENSITY },
-                { ConsoleColor.White, ConsoleAttributes.FOREGROUND_WHITE }
+                { ConsoleColor.Black,       ConsoleAttributes.NONE },
+                { ConsoleColor.DarkBlue,    ConsoleAttributes.FOREGROUND_BLUE },
+                { ConsoleColor.DarkGreen,   ConsoleAttributes.FOREGROUND_GREEN },
+                { ConsoleColor.DarkCyan,    ConsoleAttributes.FOREGROUND_BLUE  | ConsoleAttributes.FOREGROUND_GREEN },
+                { ConsoleColor.DarkRed,     ConsoleAttributes.FOREGROUND_RED },
+                { ConsoleColor.DarkMagenta, ConsoleAttributes.FOREGROUND_BLUE  | ConsoleAttributes.FOREGROUND_RED },
+                { ConsoleColor.DarkYellow,  ConsoleAttributes.FOREGROUND_GREEN | ConsoleAttributes.FOREGROUND_RED },
+                { ConsoleColor.Gray,        ConsoleAttributes.FOREGROUND_RGB },
+                { ConsoleColor.DarkGray,    ConsoleAttributes.FOREGROUND_INTENSITY },
+                { ConsoleColor.Blue,        ConsoleAttributes.FOREGROUND_BLUE  | ConsoleAttributes.FOREGROUND_INTENSITY},
+                { ConsoleColor.Green,       ConsoleAttributes.FOREGROUND_GREEN | ConsoleAttributes.FOREGROUND_INTENSITY},
+                { ConsoleColor.Cyan,        ConsoleAttributes.FOREGROUND_BLUE  | ConsoleAttributes.FOREGROUND_GREEN | ConsoleAttributes.FOREGROUND_INTENSITY },
+                { ConsoleColor.Red,         ConsoleAttributes.FOREGROUND_RED   | ConsoleAttributes.FOREGROUND_INTENSITY },
+                { ConsoleColor.Magenta,     ConsoleAttributes.FOREGROUND_BLUE  | ConsoleAttributes.FOREGROUND_RED   | ConsoleAttributes.FOREGROUND_INTENSITY },
+                { ConsoleColor.Yellow,      ConsoleAttributes.FOREGROUND_GREEN | ConsoleAttributes.FOREGROUND_RED   | ConsoleAttributes.FOREGROUND_INTENSITY },
+                { ConsoleColor.White,       ConsoleAttributes.FOREGROUND_RGB   | ConsoleAttributes.FOREGROUND_INTENSITY}
             }.ToImmutableDictionary();
         }
 
@@ -52,12 +64,12 @@ namespace SegmentedConsole
             Buffer = new Buffer(Width, Height, Scrollable);
         }
 
-        public void Write(string Text, ConsoleColor ForegroundColor = ConsoleColor.White)
+        public void Write(string Text, ConsoleColor ForegroundColor = ConsoleColor.White, ConsoleColor BackgroundColor = ConsoleColor.Black)
         {
             var Chars = Text.ToCharArray();
             foreach(var Char in Chars)
             {
-                var ColorAttributes = ConvertColor(ForegroundColor, true);
+                var ColorAttributes = ConvertColor(ForegroundColor, true) | ConvertColor(BackgroundColor, false);
                 Buffer.Append(new CharInfo(Char, ColorAttributes));
             }
             if(Chars.Length > 0)
@@ -72,7 +84,7 @@ namespace SegmentedConsole
             WriteToConsole();
         }
 
-        public void WriteLine(string Text)
+        public void WriteLine(string Text, ConsoleColor ForegroundColor = ConsoleColor.White, ConsoleColor BackgroundColor = ConsoleColor.Black)
         {
             throw new NotImplementedException();
         }

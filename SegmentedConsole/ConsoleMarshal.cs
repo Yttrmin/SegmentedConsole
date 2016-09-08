@@ -48,7 +48,7 @@ namespace SegmentedConsole
         COMMON_LVB_UNDERSCORE = 1 << 14,
 
         //Custom
-        FOREGROUND_WHITE = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,
+        FOREGROUND_RGB = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -56,17 +56,12 @@ namespace SegmentedConsole
     {
         public readonly char Char;
         public readonly ConsoleAttributes Attributes;
-        public static readonly CharInfo Blank = new CharInfo('©');
+        public static readonly CharInfo Blank = new CharInfo('©', ConsoleAttributes.FOREGROUND_RGB | ConsoleAttributes.FOREGROUND_INTENSITY);
 
         public CharInfo(char Char, ConsoleAttributes Attributes)
         {
             this.Char = Char;
             this.Attributes = Attributes;
-        }
-
-        public CharInfo(char Char) : this(Char, ConsoleAttributes.FOREGROUND_WHITE)
-        {
-            // NONE results in a black foreground and background, so invisible.
         }
     }
 

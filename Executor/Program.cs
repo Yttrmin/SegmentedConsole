@@ -18,7 +18,7 @@ namespace Executor
                 .AddVerticalLine(11, 1, 2)
                 .AddHorizontalLine(1, 4, 15);
             Console.ApplyLayout(Layout);
-            Console.GetOutputSegment("R").Write("HELLO WORLD!", ConsoleColor.Red);
+            Console.GetOutputSegment("R").Write("HELLO WORLD!", ConsoleColor.Cyan, ConsoleColor.DarkYellow);
             // Keep alive
             while (true)
             {
